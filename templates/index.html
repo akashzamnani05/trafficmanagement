@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Light Simulation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Left side: Video display -->
+        <div class="video-container">
+            <video id="videoPlayer" autoplay muted playsinline>
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <!-- Right side: Road intersection -->
+        <div class="intersection-container">
+            <div class="road-intersection">
+                <!-- Horizontal road -->
+                <div class="road horizontal"></div>
+                <!-- Vertical road -->
+                <div class="road vertical"></div>
+                
+                <!-- Center lines -->
+                <div class="center-line horizontal"></div>
+                <div class="center-line vertical"></div>
+
+                <!-- Crosswalks -->
+                <div class="crosswalk top"></div>
+                <div class="crosswalk bottom"></div>
+                <div class="crosswalk left"></div>
+                <div class="crosswalk right"></div>
+
+                <!-- Traffic lights -->
+                <div class="traffic-light top">
+                    <div class="light red"></div>
+                    <div class="light yellow"></div>
+                    <div class="light green"></div>
+                </div>
+                <div class="traffic-light bottom">
+                    <div class="light red"></div>
+                    <div class="light yellow"></div>
+                    <div class="light green"></div>
+                </div>
+                <div class="traffic-light left">
+                    <div class="light red"></div>
+                    <div class="light yellow"></div>
+                    <div class="light green"></div>
+                </div>
+                <div class="traffic-light right">
+                    <div class="light red"></div>
+                    <div class="light yellow"></div>
+                    <div class="light green"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html> 
