@@ -9,7 +9,7 @@ import time
 def normalisedf(df):
     scaler = QuantileTransformer(output_distribution='normal')
     df[['CarCount', 'BikeCount', 'BusCount', 'TruckCount']] = scaler.fit_transform(df[['CarCount', 'BikeCount', 'BusCount', 'TruckCount']])
-    print(df)
+    # print(df)
     return df
 
 
@@ -25,8 +25,8 @@ def run_model(dict):
     current_day = time.strftime("%A")
     current_hour = int(time.strftime("%H"))
     is_weekend = current_day in ["Saturday", "Sunday"]
-    print(am_pm)
-    print(current_date)
+    # print(am_pm)
+    # print(current_date)
     df = pd.DataFrame([{                                                # "Time": "11:30:00 AM",
         "Date": int(current_date),
         "Day of the week": current_day,
@@ -54,7 +54,7 @@ def run_model(dict):
 # }])
 ####
     model = load_model()
-    print(df)
+    # print(df)
     df = normalisedf(df)
     prediction = model.predict(df)
     return prediction[0]

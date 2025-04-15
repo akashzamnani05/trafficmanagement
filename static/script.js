@@ -2,7 +2,7 @@
 const videoPaths = [
     "static/vids/23712-337108764_medium.mp4",
     "static/vids/cars.mp4",
-    "static/ids/23712-337108764_medium.mp4",
+    "static/vids/23712-337108764_medium.mp4",
     "static/vids/cars.mp4"
 ];
 
@@ -13,6 +13,7 @@ const maskPaths = [
     "static/masks/vid1.png",
     "static/masks/vid2.png"
 ];
+
 
 let currentVideoIndex = 0;
 let yoloExecuted = false;
@@ -67,19 +68,71 @@ function playNextVideo() {
     yoloExecuted = false;
 }
 
-// // Function to run YOLO (placeholder for actual YOLO implementation)
-// async function runYOLO() {
-//     if (!yoloExecuted) {
-//         try {
-//             // Here you would implement the actual YOLO integration
-//             console.log(`Running YOLO on video: ${videoPaths[currentVideoIndex]}`);
-//             console.log(`Using mask: ${maskPaths[currentVideoIndex]}`);
-//             yoloExecuted = true;
-//         } catch (error) {
-//             console.error('YOLO execution error:', error);
-//         }
-//     }
-// }
+async function runYOLO() {
+    if (yoloExecuted) return;
+
+    try {
+        // Get the next video index (circular)
+        const nextVideoIndex = (currentVideoIndex + 1) % videoPaths.length;
+        const videoPath = videoPaths[nextVideoIndex];
+
+        // Create a hidden video element to extract the first frame
+        const hiddenVideo = document.createElement('video');
+        hiddenVideo.src = videoPath;
+        hiddenVideo.crossOrigin = 'anonymous'; // Allow canvas access
+        hiddenVideo.muted = true;
+        hiddenVideo.playsInline = true;
+        hiddenVideo.style.display = 'none';
+        document.body.appendChild(hiddenVideo);
+
+        // Wait for metadata to load and seek to 0
+        await new Promise((resolve, reject) => {
+            hiddenVideo.onloadeddata = () => {
+                hiddenVideo.currentTime = 0;
+                resolve();
+            };
+            hiddenVideo.onerror = reject;
+        });
+
+        // Wait for frame to load
+        await new Promise((resolve) => {
+            hiddenVideo.onseeked = resolve;
+        });
+
+        // Draw the first frame on a canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = hiddenVideo.videoWidth;
+        canvas.height = hiddenVideo.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(hiddenVideo, 0, 0, canvas.width, canvas.height);
+
+        // Convert to base64
+        const imageBase64 = canvas.toDataURL('image/jpeg');
+
+        // Clean up
+        hiddenVideo.remove();
+
+        // Send to Flask backend
+        const response = await fetch('/process_frame', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                image: imageBase64,
+                index: nextVideoIndex
+            })
+        });
+
+        const result = await response.json();
+        // console.log("YOLO result:", result);
+
+        yoloExecuted = true;
+    } catch (error) {
+        console.error("runYOLO error:", error);
+    }
+}
+
 
 
 

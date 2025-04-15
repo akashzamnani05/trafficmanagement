@@ -11,7 +11,7 @@ app = Flask(__name__)
 videoPaths = [
     "static/vids/23712-337108764_medium.mp4",
     "static/vids/cars.mp4",
-    "static/ids/23712-337108764_medium.mp4",
+    "static/vids/23712-337108764_medium.mp4",
     "static/vids/cars.mp4"
 ]
 
@@ -30,26 +30,24 @@ def index():
 def process_frame():
     data = request.get_json()
     image_data = data['image']
+    video_index = data.get('index', 0)  # Get the current video index
 
     header, base64_str = image_data.split(',', 1)
-
     image_bytes = base64.b64decode(base64_str)
     image = Image.open(io.BytesIO(image_bytes))
 
     # (Optional) Save image for verification
-    image.save("received_frame.jpg")
+    image.save(f"received_frame_{video_index}.jpg")
+
+    print(f"Received frame from video index: {video_index}")
 
     # Here you can call YOLO model and do processing
-    print("Received frame for YOLO processing")
-
-    # next_video_index = (current_video_index + 1) % len(videoPaths)
-
     yolo = YOLOImplementation()
-    dict = yolo.execute(videoPaths[0], maskPaths[0], 0)
+    dict = yolo.execute(videoPaths[video_index], maskPaths[video_index], video_index)
     prediction = run_model(dict)
     print(prediction)
 
-    return jsonify({"status": "frame received","prediction":prediction})
+    return jsonify({'status': 'success', 'prediction': 30})
 
 if __name__ == '__main__':
-    app.run(debug=True,port=8080)
+    app.run(debug=True,port=8079)
