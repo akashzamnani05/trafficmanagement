@@ -14,11 +14,14 @@ const maskPaths = [
     "static/masks/vid2.png"
 ];
 
-
 let currentVideoIndex = 0;
 let yoloExecuted = false;
 const videoPlayer = document.getElementById('videoPlayer');
 const trafficLights = document.querySelectorAll('.traffic-light');
+const countdownTimer = document.querySelector('.countdown-timer');
+
+let countdownInterval;
+let countdownValue = 21;
 
 // Function to update traffic lights
 function updateTrafficLights(activeIndex) {
@@ -41,6 +44,29 @@ function updateTrafficLights(activeIndex) {
     });
 }
 
+// Function to start countdown
+function startCountdown() {
+    // Get video duration and set countdown
+    const duration = videoPlayer.duration;
+    countdownValue = Math.ceil(duration);
+    countdownTimer.textContent = countdownValue;
+    
+    // Clear any existing interval
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+    }
+    
+    // Start new countdown
+    countdownInterval = setInterval(() => {
+        countdownValue--;
+        countdownTimer.textContent = countdownValue;
+        
+        if (countdownValue <= 0) {
+            clearInterval(countdownInterval);
+        }
+    }, 1000);
+}
+
 // Function to handle video playback
 function playNextVideo() {
     // Turn all signals red before switching
@@ -58,6 +84,8 @@ function playNextVideo() {
         videoPlayer.play().then(() => {
             // Update traffic lights after video starts playing
             updateTrafficLights(currentVideoIndex);
+            // Start countdown when video starts
+            startCountdown();
         }).catch(error => {
             console.error('Error playing video:', error);
             // Try next video if current one fails
@@ -133,10 +161,7 @@ async function runYOLO() {
     }
 }
 
-
-
-
-// Event listenersa
+// Event listeners
 videoPlayer.addEventListener('timeupdate', () => {
     const duration = videoPlayer.duration;
     const currentTime = videoPlayer.currentTime;
@@ -158,12 +183,17 @@ videoPlayer.addEventListener('error', (e) => {
     playNextVideo();
 });
 
+videoPlayer.addEventListener('loadedmetadata', () => {
+    startCountdown();
+});
+
 // Initialize the first video
 function initializeVideo() {
     videoPlayer.src = videoPaths[0];
     videoPlayer.onloadeddata = () => {
         videoPlayer.play().then(() => {
             updateTrafficLights(0);
+            startCountdown();
         }).catch(error => {
             console.error('Error playing initial video:', error);
             setTimeout(playNextVideo, 1000);
