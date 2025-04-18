@@ -358,4 +358,77 @@ body {
 .road-intersection::after,
 .roundabout-arrow {
     display: none;
+}
+
+.countdown-timer {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 48px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+    padding: 15px 25px;
+    border-radius: 15px;
+    z-index: 10;
+    font-family: 'Arial', sans-serif;
+    box-shadow: 
+        0 10px 20px rgba(0, 0, 0, 0.5),
+        inset 0 0 15px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: pulse 2s infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+    backdrop-filter: blur(5px);
+}
+
+.countdown-timer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.1) 50%, 
+        transparent 100%);
+    border-radius: 15px;
+    pointer-events: none;
+}
+
+.countdown-timer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 15px;
+    padding: 2px;
+    background: linear-gradient(45deg, 
+        rgba(255, 255, 255, 0.2), 
+        rgba(255, 255, 255, 0.1));
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 
+            0 10px 20px rgba(0, 0, 0, 0.5),
+            inset 0 0 15px rgba(0, 0, 0, 0.7);
+    }
+    50% {
+        box-shadow: 
+            0 10px 20px rgba(0, 0, 0, 0.5),
+            inset 0 0 15px rgba(0, 0, 0, 0.7),
+            0 0 20px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        box-shadow: 
+            0 10px 20px rgba(0, 0, 0, 0.5),
+            inset 0 0 15px rgba(0, 0, 0, 0.7);
+    }
 } 
