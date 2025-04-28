@@ -4,6 +4,7 @@ import base64
 from yolo_implementation import YOLOImplementation
 from model import run_model
 import io
+from time_pred import run_time_model
 
 
 app = Flask(__name__)
@@ -18,7 +19,7 @@ videoPaths = [
 maskPaths = [
     "static/masks/new1mask.png",
     'static/masks/new2mask.png',
-    "static/masks/new3mask.png",
+    "static/masks/new3 mask.png",
     "static/masks/new2mask.png"
 ]
 
@@ -37,7 +38,7 @@ def process_frame():
     image = Image.open(io.BytesIO(image_bytes))
 
     # (Optional) Save image for verification
-    image.save(f"received_frame_{video_index}.jpg")
+    image.save(f"signal_{video_index}.jpg")
 
     print(f"Received frame from video index: {video_index}")
 
@@ -46,6 +47,8 @@ def process_frame():
     dict = yolo.execute(videoPaths[video_index], maskPaths[video_index], video_index)
     prediction = run_model(dict)
     print(prediction)
+    print(run_time_model(dict,prediction))
+    
 
     return jsonify({'status': 'success', 'prediction': 30})
 
