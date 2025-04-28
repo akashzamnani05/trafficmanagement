@@ -54,13 +54,16 @@ class YOLOImplementation:
                         cls = int(box.cls[0])
                         currentClass = self.classNames[cls]
                         print(f'{currentClass}:{conf}')
-                        if currentClass in ['car', 'truck', 'bus', 'motorbike'] and conf > .3:
-                            self.d[currentClass] += 1
-                            cvzone.putTextRect(img, f"{currentClass}: {conf}", (x1, y1), thickness=0, scale=1)
-                            currntArray = np.array([x1, y1, x2, y2, conf])
-                            # cvzone.cornerRect(img, (x1, y1, w, h), l=7, rt=5)
-                            cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                            dets = np.vstack((dets, currntArray))
+                        if currentClass in ['car', 'truck', 'bus', 'motorbike','person'] and conf > .1:
+                            if currentClass == 'person':
+                                self.d['motorbike'] += 1
+                            else:
+                                self.d[currentClass] += 1
+                                cvzone.putTextRect(img, f"{currentClass}: {conf}", (x1, y1), thickness=0, scale=1)
+                                currntArray = np.array([x1, y1, x2, y2, conf])
+                                # cvzone.cornerRect(img, (x1, y1, w, h), l=7, rt=5)
+                                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                                dets = np.vstack((dets, currntArray))
                 # cv2.imshow('Image', img)
                 # print(signal_time)
 

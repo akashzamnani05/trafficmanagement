@@ -1,17 +1,17 @@
 // Video paths
 const videoPaths = [
-    "static/vids/23712-337108764_medium.mp4",
-    "static/vids/cars.mp4",
-    "static/vids/23712-337108764_medium.mp4",
-    "static/vids/cars.mp4"
+    "static/vids/new1.mp4",
+    "static/vids/new2.mp4",
+    "static/vids/new3.mp4",
+    "static/vids/new2.mp4",
 ];
 
 // Mask paths
 const maskPaths = [
-    "static/masks/vid1.png",
-    'static/masks/vid2.png',
-    "static/masks/vid1.png",
-    "static/masks/vid2.png"
+    "static/masks/new1mask.png",
+    'static/masks/new2mask.png',
+    "static/masks/new3mask.png",
+    "static/masks/new2mask.png"
 ];
 
 let currentVideoIndex = 0;
