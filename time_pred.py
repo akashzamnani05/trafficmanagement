@@ -1,5 +1,6 @@
 import joblib
 import pandas as pd
+from math import ceil
 # class TimePred:
 #     def __init__(self):
 #         self.defaultTime = 15
@@ -42,6 +43,8 @@ def run_time_model(dict,traffic_status):
     time = get_time_period()
     vehicles = sum(dict.values())
 
+    
+
     df = pd.DataFrame([{
         "Vehicle Count": vehicles,
         "Current Time": time,
@@ -50,8 +53,10 @@ def run_time_model(dict,traffic_status):
         "Status": traffic_status,
     }])
 
+    print(df)
+
     prediction = model.predict(df)
-    return prediction[0]
+    return ceil(prediction[0])
           
 
 
