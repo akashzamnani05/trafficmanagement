@@ -19,7 +19,7 @@ videoPaths = [
 maskPaths = [
     "static/masks/new1mask.png",
     'static/masks/new2mask.png',
-    "static/masks/new3 mask.png",
+    "static/masks/new3mask.png",
     "static/masks/new2mask.png"
 ]
 
@@ -45,12 +45,13 @@ def process_frame():
     # Here you can call YOLO model and do processing
     yolo = YOLOImplementation()
     dict = yolo.execute(videoPaths[video_index], maskPaths[video_index], video_index)
+    print("dict: ",dict)
     prediction = run_model(dict)
     print(prediction)
     print(run_time_model(dict,prediction))
     
 
-    return jsonify({'status': 'success', 'prediction': 30})
+    return jsonify({'status': 'success', 'prediction': 30, 'nextDuration': run_time_model(dict,prediction)})
 
 if __name__ == '__main__':
     app.run(debug=True,port=8079)

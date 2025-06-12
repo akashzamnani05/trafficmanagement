@@ -29,7 +29,7 @@ def get_time_period():
         return 'B'
     elif 15 <= current_hour < 18:
         return 'C'
-    elif 18 <= current_hour < 21:
+    elif 18 <= current_hour < 23:
         return 'D'
     else:
         return None 

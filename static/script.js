@@ -16,12 +16,15 @@ const maskPaths = [
 
 let currentVideoIndex = 0;
 let yoloExecuted = false;
+let countdownValue = 21;
+let countdownInterval = null;
+let customVideoDuration = null;
+
 const videoPlayer = document.getElementById('videoPlayer');
 const trafficLights = document.querySelectorAll('.traffic-light');
 const countdownTimer = document.querySelector('.countdown-timer');
-
-let countdownInterval;
-let countdownValue = 21;
+const countdownTimerLeft = document.querySelector('.top-left');
+const predictionSeconds = document.querySelector('.top-right');
 
 // Function to update traffic lights
 function updateTrafficLights(activeIndex) {
@@ -30,12 +33,10 @@ function updateTrafficLights(activeIndex) {
         const yellowLight = light.querySelector('.light.yellow');
         const greenLight = light.querySelector('.light.green');
 
-        // Reset all lights
         redLight.classList.remove('active');
         yellowLight.classList.remove('active');
         greenLight.classList.remove('active');
 
-        // Set active light
         if (index === activeIndex) {
             greenLight.classList.add('active');
         } else {
@@ -45,75 +46,67 @@ function updateTrafficLights(activeIndex) {
 }
 
 // Function to start countdown
-function startCountdown() {
-    // Get video duration and set countdown
-    const duration = videoPlayer.duration;
+function startCountdown(durationOverride = null) {
+    const duration = durationOverride !== null ? durationOverride : videoPlayer.duration;
     countdownValue = Math.ceil(duration);
     countdownTimer.textContent = countdownValue;
-    
-    // Clear any existing interval
+
     if (countdownInterval) {
         clearInterval(countdownInterval);
     }
-    
-    // Start new countdown
+
     countdownInterval = setInterval(() => {
         countdownValue--;
         countdownTimer.textContent = countdownValue;
-        
+
         if (countdownValue <= 0) {
             clearInterval(countdownInterval);
         }
     }, 1000);
 }
 
-// Function to handle video playback
+// Function to play next video
 function playNextVideo() {
-    // Turn all signals red before switching
+    customVideoDuration = null;
+    yoloExecuted = false;
+
     trafficLights.forEach(light => {
         light.querySelector('.light.green').classList.remove('active');
         light.querySelector('.light.red').classList.add('active');
     });
-    
-    // Update to next video
+
     currentVideoIndex = (currentVideoIndex + 1) % videoPaths.length;
     videoPlayer.src = videoPaths[currentVideoIndex];
-    
-    // Wait for video to load
+
     videoPlayer.onloadeddata = () => {
         videoPlayer.play().then(() => {
-            // Update traffic lights after video starts playing
             updateTrafficLights(currentVideoIndex);
-            // Start countdown when video starts
-            startCountdown();
+            startCountdown(customVideoDuration);
         }).catch(error => {
             console.error('Error playing video:', error);
-            // Try next video if current one fails
             setTimeout(playNextVideo, 1000);
         });
     };
-    
-    yoloExecuted = false;
 }
 
+// Function to run YOLO
 async function runYOLO() {
-    if (yoloExecuted) return;
+    if (yoloExecuted) return null;
 
     try {
-        // Get the next video index (circular)
         const nextVideoIndex = (currentVideoIndex + 1) % videoPaths.length;
         const videoPath = videoPaths[nextVideoIndex];
 
-        // Create a hidden video element to extract the first frame
+        console.log(`Running YOLO on video: ${videoPath}`);
+
         const hiddenVideo = document.createElement('video');
         hiddenVideo.src = videoPath;
-        hiddenVideo.crossOrigin = 'anonymous'; // Allow canvas access
+        hiddenVideo.crossOrigin = 'anonymous';
         hiddenVideo.muted = true;
         hiddenVideo.playsInline = true;
         hiddenVideo.style.display = 'none';
         document.body.appendChild(hiddenVideo);
 
-        // Wait for metadata to load and seek to 0
         await new Promise((resolve, reject) => {
             hiddenVideo.onloadeddata = () => {
                 hiddenVideo.currentTime = 0;
@@ -122,25 +115,19 @@ async function runYOLO() {
             hiddenVideo.onerror = reject;
         });
 
-        // Wait for frame to load
-        await new Promise((resolve) => {
+        await new Promise(resolve => {
             hiddenVideo.onseeked = resolve;
         });
 
-        // Draw the first frame on a canvas
         const canvas = document.createElement('canvas');
         canvas.width = hiddenVideo.videoWidth;
         canvas.height = hiddenVideo.videoHeight;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(hiddenVideo, 0, 0, canvas.width, canvas.height);
 
-        // Convert to base64
         const imageBase64 = canvas.toDataURL('image/jpeg');
-
-        // Clean up
         hiddenVideo.remove();
 
-        // Send to Flask backend
         const response = await fetch('/process_frame', {
             method: 'POST',
             headers: {
@@ -153,26 +140,38 @@ async function runYOLO() {
         });
 
         const result = await response.json();
-        // console.log("YOLO result:", result);
-
         yoloExecuted = true;
+        predictionSeconds.textContent = result.nextDuration;
+
     } catch (error) {
         console.error("runYOLO error:", error);
+        return null;
     }
 }
 
-// Event listeners
+// Time update logic
 videoPlayer.addEventListener('timeupdate', () => {
-    const duration = videoPlayer.duration;
+    const effectiveDuration = customVideoDuration !== null ? customVideoDuration : videoPlayer.duration;
     const currentTime = videoPlayer.currentTime;
-    
-    // Run YOLO 3 seconds before the video ends
-    if (duration - currentTime <= 3 && !yoloExecuted) {
-        runYOLO();
-        console.log('running yolo ')
+
+    // Run YOLO 3 seconds before effective end
+    if (effectiveDuration - currentTime <= 3 && !yoloExecuted) {
+        runYOLO().then(durationOverride => {
+            if (durationOverride !== null) {
+                customVideoDuration = durationOverride;
+                console.log(`Custom duration from YOLO: ${customVideoDuration}`);
+            }
+        });
+    }
+
+    // Stop video early if custom duration reached
+    if (customVideoDuration !== null && currentTime >= customVideoDuration) {
+        videoPlayer.pause();
+        videoPlayer.dispatchEvent(new Event('ended'));
     }
 });
 
+// Event handlers
 videoPlayer.addEventListener('ended', () => {
     console.log('Video ended, switching to next video');
     playNextVideo();
@@ -184,16 +183,18 @@ videoPlayer.addEventListener('error', (e) => {
 });
 
 videoPlayer.addEventListener('loadedmetadata', () => {
-    startCountdown();
+    startCountdown(customVideoDuration);
 });
 
-// Initialize the first video
+// Initialize video playback
 function initializeVideo() {
+    customVideoDuration = null;
     videoPlayer.src = videoPaths[0];
+
     videoPlayer.onloadeddata = () => {
         videoPlayer.play().then(() => {
             updateTrafficLights(0);
-            startCountdown();
+            startCountdown(customVideoDuration);
         }).catch(error => {
             console.error('Error playing initial video:', error);
             setTimeout(playNextVideo, 1000);
@@ -201,11 +202,11 @@ function initializeVideo() {
     };
 }
 
-// Start the application
 initializeVideo();
 
-// Handle window closing
+// Pause video if user closes window
 window.addEventListener('beforeunload', () => {
     videoPlayer.pause();
     videoPlayer.src = '';
-}); 
+});
+
