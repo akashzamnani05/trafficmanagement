@@ -23,7 +23,7 @@ def get_time_period():
     now = datetime.now()
     current_hour = now.hour
 
-    if 9 <= current_hour < 12:
+    if 9 <= current_hour < 12 or current_hour <=3:
         return 'A'
     elif 12 <= current_hour < 15:
         return 'B'
